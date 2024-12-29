@@ -87,6 +87,7 @@ spec:
             - --entrypoints.traefik.address=:8082
             - --providers.kubernetesingress
             - --log.level=INFO
+            - --ping # Enable the /ping endpoint for health checks
           ports:
             - name: web
               containerPort: 8081
@@ -100,12 +101,14 @@ spec:
               port: admin
             initialDelaySeconds: 5
             periodSeconds: 10
+            failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /ping
               port: admin
             initialDelaySeconds: 15
             periodSeconds: 20
+            failureThreshold: 3
           resources:
             requests:
               memory: "128Mi"
@@ -113,7 +116,6 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "500m"
-
 ---
 apiVersion: v1
 kind: Service
