@@ -1,0 +1,11 @@
+# apiVersion: traefik.io/v1alpha1
+# kind: Middleware
+# metadata:
+#   name: keycloak-auth
+#   namespace: default
+# spec:
+#   forwardAuth:
+#     address: https://keycloak.example.com/auth/realms/your-realm/protocol/openid-connect/auth
+#     trustForwardHeader: true
+#     authResponseHeaders:
+#       - Authorization
