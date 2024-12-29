@@ -1,3 +1,6 @@
+kubectl.exe create namespace keycloak
+kubectl.exe create namespace monitoring
+
 Install the AWS Load Balancer Controller:
 helm repo add eks https://aws.github.io/eks-charts
 helm install aws-load-balancer-controller eks/aws-load-balancer-controller \

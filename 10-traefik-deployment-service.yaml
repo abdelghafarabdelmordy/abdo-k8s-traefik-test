@@ -15,6 +15,15 @@ rules:
       - services
       - endpoints
       - secrets
+      - nodes
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - discovery.k8s.io
+    resources:
+      - endpointslices
     verbs:
       - get
       - list
@@ -30,7 +39,7 @@ rules:
       - list
       - watch
   - apiGroups:
-      - extensions
+      - networking.k8s.io
     resources:
       - ingresses/status
     verbs:
@@ -69,28 +78,42 @@ spec:
       serviceAccountName: traefik
       containers:
         - name: traefik
-          image: traefik:latest
+          image: traefik:v3.2.3
           args:
             - --api.insecure=true
             - --accesslog=true
-            - --entrypoints.web.address=:80
-            - --entrypoints.websecure.address=:443
+            - --entrypoints.web.address=:8081
+            - --entrypoints.websecure.address=:8443
+            - --entrypoints.traefik.address=:8082
             - --providers.kubernetesingress
+            - --log.level=INFO
           ports:
             - name: web
-              containerPort: 80
+              containerPort: 8081
             - name: websecure
-              containerPort: 443
+              containerPort: 8443
             - name: admin
-              containerPort: 8080
+              containerPort: 8082
           readinessProbe:
             httpGet:
               path: /ping
-              port: 8080
+              port: admin
+            initialDelaySeconds: 5
+            periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /ping
-              port: 8080
+              port: admin
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "200m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+
 ---
 apiVersion: v1
 kind: Service
@@ -98,16 +121,16 @@ metadata:
   name: traefik
   namespace: kube-system
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - name: web
-      port: 80
+      port: 8081
       targetPort: web
     - name: websecure
-      port: 443
+      port: 8443
       targetPort: websecure
     - name: admin
-      port: 8080
+      port: 8082
       targetPort: admin
   selector:
     app: traefik
